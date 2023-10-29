@@ -1,10 +1,6 @@
 import 'dart:io';
 import 'package:books_command_app/book.dart';
 
-int calculate() {
-  return 6 * 7;
-}
-
 List<Book> database = [];
 
 void run() {
@@ -15,7 +11,7 @@ void run() {
   database.add(book2);
 
   while (true) {
-    print("Medien-Verwaltung");
+    print("Buch-Medien-Verwaltung");
     print("1. Buch hinzufügen");
     print("2. Liste aller Bücher anzeigen");
     print("3. Nach Büchern suchen");
@@ -46,7 +42,7 @@ void run() {
   }
 }
 
-void addBook() {
+Future<void> addBook() async {
   stdout.write("Titel: ");
   String title = stdin.readLineSync()!;
   stdout.write("Autor: ");
@@ -56,16 +52,28 @@ void addBook() {
   stdout.write("Veröffentlichungsjahr: ");
   int releaseYear = int.parse(stdin.readLineSync()!);
 
+  /*
   Book book = Book(title, author, genre, releaseYear);
   database.add(book);
-  print("Buch wurde hinzugefügt.");
+  print(
+      "Das Buch ${title} vom Author ${author} aus dem Genre ${genre} aus dem Jahr ${releaseYear} wurde in die Datenbank hinzugefügt.");
+  */
+
+  //funktioniert nicht mit speichern
+  print("Buch wird versucht zu speichern...");
+  await Future.delayed(Duration(seconds: 2), () {
+    Book book = Book(title, author, genre, releaseYear);
+    database.add(book);
+    print("Buch konnte hinzugefügt werden.");
+    run(); // Kehre zum Hauptmenü zurück
+  });
 }
 
 void listBooks() {
   if (database.isEmpty) {
     print("Die Datenbank ist leer.");
   } else {
-    for (var book in database) {
+    for (Book book in database) {
       print(
           "Titel: ${book.title}, Autor: ${book.author}, Genre: ${book.genre}, Veröffentlichungsjahr: ${book.releaseYear}");
     }
@@ -92,14 +100,14 @@ void searchBooks() {
         print("Keine Bücher von $author gefunden.");
       } else {
         print("Bücher von $author:");
-        for (var book in matchingBooks) {
+        for (Book book in matchingBooks) {
           print(
               "Titel: ${book.title}, Genre: ${book.genre}, Veröffentlichungsjahr: ${book.releaseYear}");
         }
       }
       break;
     case "2":
-      stdout.write("Gib das Genre ein: ");
+      stdout.write("Gib bitte das Genre ein: ");
       String genre = stdin.readLineSync()!;
       final matchingBooks =
           database.where((book) => book.genre == genre).toList();
@@ -114,15 +122,15 @@ void searchBooks() {
       }
       break;
     case "3":
-      stdout.write("Gib das Veröffentlichungsjahr ein: ");
+      stdout.write("Gib bitte das Veröffentlichungsjahr ein: ");
       int releaseYear = int.parse(stdin.readLineSync()!);
       final matchingBooks =
           database.where((book) => book.releaseYear == releaseYear).toList();
       if (matchingBooks.isEmpty) {
-        print("Keine Bücher aus dem Jahr $releaseYear gefunden.");
+        print("Es wurde kein Buch aus dem Jahr $releaseYear gefunden.");
       } else {
         print("Bücher aus dem Jahr $releaseYear:");
-        for (var book in matchingBooks) {
+        for (Book book in matchingBooks) {
           print(
               "Titel: ${book.title}, Autor: ${book.author}, Genre: ${book.genre}");
         }
@@ -140,9 +148,12 @@ void deleteBook() {
   stdout.write("Gib den Titel des zu löschenden Buchs ein: ");
   String titleToDelete = stdin.readLineSync()!;
 
+  Book deleteBook = Book(titleToDelete, "", "", 0);
+
   bool removed = false;
   database.removeWhere((book) {
     if (book.title == titleToDelete) {
+      deleteBook = book;
       removed = true;
       return true;
     }
@@ -150,8 +161,10 @@ void deleteBook() {
   });
 
   if (removed) {
-    print("$titleToDelete wurde aus der Datenbank gelöscht.");
+    print(
+        "Das Buch mit dem Titel [${titleToDelete}] vom Author [${deleteBook.author}] aus dem Genre [${deleteBook.genre}] aus dem Jahr [${deleteBook.releaseYear}] wurde aus der Datenbank erfolgreich gelöscht.");
+    print("${deleteBook.title}");
   } else {
-    print("Buch mit dem Titel $titleToDelete nicht gefunden.");
+    print("Buch mit dem Titel [$titleToDelete] wurde nicht gefunden.");
   }
 }
